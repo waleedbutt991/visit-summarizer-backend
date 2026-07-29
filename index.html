@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit Data Summarizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-xl w-full bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
+        <h1 class="text-3xl font-bold text-center text-indigo-400 mb-2">📊 Visit Data Summarizer</h1>
+        <p class="text-slate-400 text-center mb-6 text-sm">Upload your Excel file to generate instant summary analytics.</p>
+
+        <!-- File Upload Area -->
+        <div class="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center bg-slate-800/50 hover:border-indigo-500 transition-colors cursor-pointer" id="drop-zone">
+            <input type="file" id="file-input" accept=".xlsx, .xls" class="hidden">
+            <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=" "></path>
+            </svg>
+            <p class="text-slate-300 font-medium" id="file-label">Click to upload or drag & drop Excel file</p>
+            <p class="text-slate-500 text-xs mt-1">Supports .xlsx and .xls</p>
+        </div>
+
+        <button id="upload-btn" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-indigo-600/30">
+            Generate Summary Report
+        </button>
+
+        <!-- Loader -->
+        <div id="loader" class="hidden text-center mt-6 text-indigo-400 font-medium animate-pulse">
+            Processing Excel file...
+        </div>
+
+        <!-- Analytics Results Cards -->
+        <div id="results" class="hidden mt-8 space-y-4">
+            <hr class="border-slate-700 my-4">
+            <h2 class="text-lg font-semibold text-slate-200">📈 Summary Overview</h2>
+
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600">
+                    <p class="text-xs text-slate-400 font-medium uppercase">Total Visits</p>
+                    <p class="text-2xl font-bold text-indigo-400 mt-1" id="res-visits">0</p>
+                </div>
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600">
+                    <p class="text-xs text-slate-400 font-medium uppercase">Total Sampling</p>
+                    <p class="text-2xl font-bold text-amber-400 mt-1" id="res-sampling">0</p>
+                </div>
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600">
+                    <p class="text-xs text-slate-400 font-medium uppercase">Adoptions</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-1" id="res-adoptions">0</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-700/30 p-4 rounded-xl border border-slate-600 text-center mt-3">
+                <p class="text-xs text-slate-400 font-medium uppercase">Conversion Rate</p>
+                <p class="text-3xl font-extrabold text-indigo-300 mt-1" id="res-rate">0%</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileLabel = document.getElementById('file-label');
+        const uploadBtn = document.getElementById('upload-btn');
+        const loader = document.getElementById('loader');
+        const results = document.getElementById('results');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileLabel.innerText = e.target.files[0].name;
+            }
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            if (!fileInput.files[0]) {
+                alert("Pehle Excel file select karein!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            loader.classList.remove('hidden');
+            results.classList.add('hidden');
+
+            try {
+                // Change URL if deploying on a cloud server
+                const response = await fetch("http://127.0.0.1:8000/analyze", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const res = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('res-visits').innerText = res.data.total_visits;
+                    document.getElementById('res-sampling').innerText = res.data.total_sampling;
+                    document.getElementById('res-adoptions').innerText = res.data.total_adoptions;
+                    document.getElementById('res-rate').innerText = res.data.conversion_rate + "%";
+
+                    results.classList.remove('hidden');
+                } else {
+                    alert(res.detail || "Error occurred");
+                }
+            } catch (err) {
+                alert("Server se connection nahi ho saka. FastAPI chalu hai?");
+            } finally {
+                loader.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
