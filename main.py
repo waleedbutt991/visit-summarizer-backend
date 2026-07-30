@@ -13,6 +13,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root route (Browser me test karne ke liye)
+@app.get("/")
+def read_root():
+    return {"status": "success", "message": "Backend is running live on Railway!"}
+
 @app.post("/analyze")
 async def analyze_excel(file: UploadFile = File(...)):
     if not file.filename.endswith(('.xlsx', '.xls')):
