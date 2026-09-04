@@ -5,7 +5,6 @@ import io
 
 app = FastAPI()
 
-# Frontend se connect hone ke liye CORS enable karein
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,10 +12,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Root route (Browser me test karne ke liye)
 @app.get("/")
 def read_root():
-    return {"status": "success", "message": "Backend is running live on Railway!"}
+    return {"status": "success", "message": "Backend running on Vercel!"}
 
 @app.post("/analyze")
 async def analyze_excel(file: UploadFile = File(...)):
